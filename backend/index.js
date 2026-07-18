@@ -37,6 +37,9 @@ app.post("/sendemail",function(req,res){
   },
 });
 
+await transporter.verify();
+console.log("SMTP Connected");
+
 
  new Promise(async function(resolve,reject){
 
