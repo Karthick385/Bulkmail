@@ -1,10 +1,12 @@
-import logo from './logo.svg';
+
 import './App.css';
 import  * as XLSX from "xlsx"
 import axios from "axios";
 import { useState } from 'react';
 
 function App() {
+
+      const API_URL = "https://bulkmail-l4mo.onrender.com";
   
       const [msg,setmsg] = useState("")
       const [status,setstatus] = useState(false)
@@ -37,7 +39,10 @@ function App() {
        function send()
        {
           setstatus(true)        
-          axios.post("http://localhost:5000/sendemail",{msg:msg,emailList:emailList})
+          axios.post(`${API_URL}/sendemail`, {
+            msg,
+            emailList,
+          })
           .then(function(data){
               if(data.data === true)
               {
