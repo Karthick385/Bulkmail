@@ -1,7 +1,7 @@
 const express = require("express")
 const cors = require("cors")
 const mongoose = require("mongoose")
-const brevo = require('@getbrevo/brevo');
+const axios = require("axios")
 
 const app = express()
 
@@ -12,11 +12,12 @@ require("dotenv").config();
 
 mongoose
   .connect(process.env.MONGODB_URI)
-  .then(() => console.log("Connected to MongoDB Atlas"))
-  .catch((err) => console.log("Database connection failed:", err));
-
-let apiInstance = new brevo.TransactionalEmailsApi();
-apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
+  .then(() => {
+    console.log("Connected to MongoDB Atlas");
+  })
+  .catch((err) => {
+    console.log("Database connection failed:", err);
+  });
 
 app.post("/sendemail", async function (req, res) {
   try {
@@ -31,12 +32,21 @@ app.post("/sendemail", async function (req, res) {
     for (const email of emailList) {
       console.log("Sending to:", email);
 
-      await apiInstance.sendTransacEmail({
-        sender: { email: "karthicknarayanan385@gmail.com", name: "BulkMail" },
-        to: [{ email: email }],
-        subject: "A message from Bulkmail app",
-        textContent: msg,
-      });
+      await axios.post(
+        "https://api.brevo.com/v3/smtp/email",
+        {
+          sender: { email: "karthicknarayanan385@gmail.com", name: "BulkMail" },
+          to: [{ email: email }],
+          subject: "A message from Bulkmail app",
+          textContent: msg,
+        },
+        {
+          headers: {
+            "api-key": process.env.BREVO_API_KEY,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       console.log("Email Sent:", email);
     }
@@ -45,7 +55,7 @@ app.post("/sendemail", async function (req, res) {
     res.send(true);
 
   } catch (error) {
-    console.error("ERROR:", error);
+    console.error("ERROR:", error.response ? error.response.data : error.message);
     res.status(500).send(false);
   }
 });
