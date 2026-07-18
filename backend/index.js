@@ -43,15 +43,15 @@ app.post("/sendemail", async function (req, res) {
 
     const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  port: 587,
+  secure: false, // STARTTLS, not SSL
   auth: {
     user: data[0].user,
     pass: data[0].pass,
   },
-  family: 4, // force IPv4, fixes ENETUNREACH on Render
+  family: 4,
+  connectionTimeout: 10000,
 });
-
     console.log("Transporter Created");
 
     for (const email of emailList) {
