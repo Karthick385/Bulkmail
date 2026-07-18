@@ -40,8 +40,8 @@ function App() {
        {
           setstatus(true)        
           axios.post(`${API_URL}/sendemail`, {
-            msg,
-            emailList,
+            msg:msg,
+            emailList:emailList,
           })
           .then(function(data){
               if(data.data === true)
