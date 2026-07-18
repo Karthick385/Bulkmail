@@ -1,7 +1,7 @@
 const express = require("express")
 const cors = require("cors")
 const mongoose = require("mongoose")
-const { Resend } = require("resend")
+const brevo = require('@getbrevo/brevo');
 
 const app = express()
 
@@ -15,7 +15,8 @@ mongoose
   .then(() => console.log("Connected to MongoDB Atlas"))
   .catch((err) => console.log("Database connection failed:", err));
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let apiInstance = new brevo.TransactionalEmailsApi();
+apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
 
 app.post("/sendemail", async function (req, res) {
   try {
@@ -30,14 +31,14 @@ app.post("/sendemail", async function (req, res) {
     for (const email of emailList) {
       console.log("Sending to:", email);
 
-      const result = await resend.emails.send({
-        from: "onboarding@resend.dev",
-        to: email,
+      await apiInstance.sendTransacEmail({
+        sender: { email: "karthicknarayanan385@gmail.com", name: "BulkMail" },
+        to: [{ email: email }],
         subject: "A message from Bulkmail app",
-        text: msg,
+        textContent: msg,
       });
 
-      console.log("Email Sent:", email, result);
+      console.log("Email Sent:", email);
     }
 
     console.log("All emails sent successfully");
