@@ -42,12 +42,15 @@ app.post("/sendemail", async function (req, res) {
     }
 
     const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: data[0].user,
-        pass: data[0].pass,
-      },
-    });
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: data[0].user,
+    pass: data[0].pass,
+  },
+  family: 4, // force IPv4, fixes ENETUNREACH on Render
+});
 
     console.log("Transporter Created");
 

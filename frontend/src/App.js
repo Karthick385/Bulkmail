@@ -36,25 +36,20 @@ function App() {
         reader.readAsBinaryString(file);
        }
 
-       function send()
-       {
-          setstatus(true)        
-          axios.post(`${API_URL}/sendemail`, {
-            msg:msg,
-            emailList:emailList,
-          })
-          .then(function(data){
-              if(data.data === true)
-              {
-                alert("Email Sent Successfully")
-                setstatus(false)
-              }
-              else{
-                alert("Failed")
-              }
-          })
-       }
-  
+       function send() {
+  setstatus(true)
+  axios.post(`${API_URL}/sendemail`, { msg, emailList })
+    .then(function(data) {
+      alert(data.data === true ? "Email Sent Successfully" : "Failed")
+    })
+    .catch(function(error) {
+      console.error(error)
+      alert("Error sending emails")
+    })
+    .finally(function() {
+      setstatus(false)
+    })
+}
   
   
   return (
