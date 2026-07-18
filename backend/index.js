@@ -22,61 +22,56 @@ mongoose
 
 const credential = mongoose.model("credential",{},"bulkmail")
 
-app.post("/sendemail",function(req,res){
+app.post("/sendemail", async function (req, res) {
+  try {
+    console.log("===== SEND EMAIL API CALLED =====");
 
-        var msg=req.body.msg
-        var emailList=req.body.emailList
+    const msg = req.body.msg;
+    const emailList = req.body.emailList;
 
+    console.log("Message:", msg);
+    console.log("Email List:", emailList);
 
-        credential.find().then(function(data){
+    const data = await credential.find();
+
+    console.log("MongoDB Data:", data);
+
+    if (!data.length) {
+      console.log("No credentials found in MongoDB");
+      return res.status(500).send(false);
+    }
+
     const transporter = nodemailer.createTransport({
- service:"gmail",
-  auth: {
-    user:data[0].toJSON().user ,
-    pass:data[0].toJSON().pass,
-  },
+      service: "gmail",
+      auth: {
+        user: data[0].user,
+        pass: data[0].pass,
+      },
+    });
+
+    console.log("Transporter Created");
+
+    for (const email of emailList) {
+      console.log("Sending to:", email);
+
+      await transporter.sendMail({
+        from: data[0].user,
+        to: email,
+        subject: "A message from Bulkmail app",
+        text: msg,
+      });
+
+      console.log("Email Sent:", email);
+    }
+
+    console.log("All emails sent successfully");
+    res.send(true);
+
+  } catch (error) {
+    console.error("ERROR:", error);
+    res.status(500).send(false);
+  }
 });
-
-
- new Promise(async function(resolve,reject){
-
-        try{
-        for(var i=0; i<emailList.length;i++)
-        {
-            await transporter.sendMail(
-    {
-        from:"karthicknarayanan385@gmail.com",
-        to:emailList[i],
-        subject:"A message from Bulkmail app",
-        text:msg
-    }
-)
-
-    console.log("Email Sent to:",emailList[i]);
-    }
-resolve("success")
-}
-catch(error){
-    reject("failed")
-}
-
-        }).then(function(){
-            res.send(true)
-        }).catch(function(){
-            res.send(false)
-        })
-
-
-
-
-}).catch(function(error){
-        console.log(error)
-})
-
-
-        
-    
-})
 
         
        
