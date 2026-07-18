@@ -1,57 +1,70 @@
-
 import './App.css';
-import  * as XLSX from "xlsx"
-import axios from "axios";
+import * as XLSX from "xlsx"
+import emailjs from '@emailjs/browser';
 import { useState } from 'react';
 
 function App() {
 
-      const API_URL = "https://bulkmail-l4mo.onrender.com";
-  
-      const [msg,setmsg] = useState("")
-      const [status,setstatus] = useState(false)
-      const [emailList,setemailList] =useState([])
-       function handlemsg(evt)
-       {
-          setmsg(evt.target.value)
-       }
+  const SERVICE_ID = "service_2vs51ab";
+  const TEMPLATE_ID = "template_8k1swn6";
+  const PUBLIC_KEY = "dxLHiRamuzCUzcY5z";
 
-       function handlefile(event)
-       {
-          const file = event.target.files[0]
-          console.log(file)
+  const [msg, setmsg] = useState("")
+  const [status, setstatus] = useState(false)
+  const [emailList, setemailList] = useState([])
 
-          const reader = new FileReader();
-          reader.onload = function (e){
-            const data = e.target.result;
-            const workbook =XLSX.read(data,{ type:'binary' })
-            const sheetname = workbook.SheetNames[0]
-            const worksheet = workbook.Sheets[sheetname]
-            const emailList = XLSX.utils.sheet_to_json(worksheet,{header:'A'})
-          
-            const totalemail = emailList.map(function(item){return item.A})
-            console.log(emailList)
-            setemailList(totalemail)
-          }
-        reader.readAsBinaryString(file);
-       }
+  function handlemsg(evt) {
+    setmsg(evt.target.value)
+  }
 
-       function send() {
-  setstatus(true)
-  axios.post(`${API_URL}/sendemail`, { msg, emailList })
-    .then(function(data) {
-      alert(data.data === true ? "Email Sent Successfully" : "Failed")
-    })
-    .catch(function(error) {
-      console.error(error)
+  function handlefile(event) {
+    const file = event.target.files[0]
+    console.log(file)
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const data = e.target.result;
+      const workbook = XLSX.read(data, { type: 'binary' })
+      const sheetname = workbook.SheetNames[0]
+      const worksheet = workbook.Sheets[sheetname]
+      const emailList = XLSX.utils.sheet_to_json(worksheet, { header: 'A' })
+
+      const totalemail = emailList.map(function (item) { return item.A })
+      console.log(emailList)
+      setemailList(totalemail)
+    }
+    reader.readAsBinaryString(file);
+  }
+
+  async function send() {
+    setstatus(true)
+
+    try {
+      for (const email of emailList) {
+        console.log("Sending to:", email);
+
+        await emailjs.send(
+          SERVICE_ID,
+          TEMPLATE_ID,
+          {
+            to_email: email,
+            message: msg,
+          },
+          PUBLIC_KEY
+        );
+
+        console.log("Email Sent:", email);
+      }
+
+      alert("Email Sent Successfully")
+    } catch (error) {
+      console.error("ERROR:", error)
       alert("Error sending emails")
-    })
-    .finally(function() {
+    } finally {
       setstatus(false)
-    })
-}
-  
-  
+    }
+  }
+
   return (
     <div>
       <div className="bg-blue-950 text-white text-center">
@@ -68,27 +81,25 @@ function App() {
 
       <div className="bg-blue-400 flex flex-col items-center text-black px-5 py-3">
         <textarea onChange={handlemsg} value={msg} className="w-[80%] h-32 py-2 outline-none px-2 border border-black rounded-md" placeholder="Enter the email text..."></textarea>
-      
 
-      <div>
-        <input type="file" onChange={handlefile} className="border-4 border-dashed py-4 px-4 mt-5 mb-5"></input>
+        <div>
+          <input type="file" onChange={handlefile} className="border-4 border-dashed py-4 px-4 mt-5 mb-5"></input>
+        </div>
+
+        <p>Total Emails in the file:{emailList.length}</p>
+
+        <button onClick={send} className="mt-2 bg-blue-950 py-2 px-2 text-white font-medium rounded-md w-fit">{status ? "Sending..." : "Send"}</button>
       </div>
-
-      <p>Total Emails in the file:{emailList.length}</p>
-
-      <button onClick={send} className="mt-2 bg-blue-950 py-2 px-2 text-white font-medium rounded-md w-fit">{status?"Sending...":"Send"}</button>
-       </div>
       <div className="bg-blue-300 text-white text-center p-8">
-        
+
       </div>
       <div className="bg-blue-200 text-white text-center p-8">
-       
+
       </div>
-    
 
     </div>
 
-      
+
   );
 }
 
